@@ -80,10 +80,12 @@ public class Another extends Application {
         dateFromPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayFrom = newValue;
             System.out.println(dayFrom);
+            lineChart.getData().clear();
         });
         dateToPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayTo = newValue;
             System.out.println(dayTo);
+            lineChart.getData().clear();
         });
 
         // add DatePickers
