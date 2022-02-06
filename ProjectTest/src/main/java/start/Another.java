@@ -31,9 +31,10 @@ public class Another extends Application {
     CategoryAxis xAxis = new CategoryAxis();
     NumberAxis yAxis = new NumberAxis();
     LineChart<String, Number> lineChart = new LineChart<String, Number>(xAxis,yAxis);
+    TreeMap<String, XYChart.Series<String, Number>> seriesTreeMap = new TreeMap<String, XYChart.Series<String, Number>>();
 
-    // questions - czemu nie działa z LocalDate xd
-    // idk czy to działa ogólnie, bo idk jak to sprawdzić tbh
+    // popraw legende
+    // czemu xaxis nie dziala dla jednego wykresu
     // można dodać jeszcze wyszarzenie daty
 
 
@@ -56,9 +57,18 @@ public class Another extends Application {
         return series1;
     }
 
-    public int dateToInt(LocalDate date){
-        return date.getYear()*10000+date.getMonthValue()*100+date.getDayOfMonth();
+    public XYChart.Series<String, Number> goldSeries(LocalDate dayFrom, LocalDate dayTo){
+        DataPlot currency = DataGetter.getPlotGoldData(dayFrom, dayTo);
+        XYChart.Series series1 = new XYChart.Series();
+        for(int j = 0; j < currency.getDates().toArray().length; j++){
+            series1.getData().add(new XYChart.Data(currency.getDates().get(j).toString(), currency.getValues().get(j)));
+        }
+        return series1;
     }
+
+    //public int dateToInt(LocalDate date){
+    //    return date.getYear()*10000+date.getMonthValue()*100+date.getDayOfMonth();
+    //}
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -104,10 +114,11 @@ public class Another extends Application {
                     (ov, old_val, new_val) -> {
                         if(old_val){
                             System.out.println("Delete");
-                            lineChart.getData().remove(i.getCode());
+                            lineChart.getData().remove(seriesTreeMap.get(i.getCode()));
                         }else{
                             System.out.println(i.getCode());
-                            lineChart.getData().add(series(i.getCode(), dayFrom, dayTo));
+                            seriesTreeMap.put(i.getCode(), series(i.getCode(), dayFrom, dayTo));
+                            lineChart.getData().add(seriesTreeMap.get(i.getCode()));
                         }
                     }
             );
@@ -116,6 +127,18 @@ public class Another extends Application {
 
         CheckBox checkBox = new CheckBox();
         checkBox.setText("Gold");
+        checkBox.selectedProperty().addListener(
+                (ov, old_val, new_val) -> {
+                    if(old_val){
+                        System.out.println("Delete");
+                        lineChart.getData().remove(seriesTreeMap.get("Gold"));
+                    }else{
+                        System.out.println("Gold");
+                        seriesTreeMap.put("Gold", goldSeries(dayFrom, dayTo));
+                        lineChart.getData().add(seriesTreeMap.get("Gold"));
+                    }
+                }
+        );
         downControl.getChildren().add(checkBox);
 
 
@@ -123,7 +146,7 @@ public class Another extends Application {
 
         xAxis.setLabel("Date");
         yAxis.setLabel("Value");
-        //creating the chart
+        lineChart.setCreateSymbols(false);
         rightControl.getChildren().add(lineChart);
 
 
