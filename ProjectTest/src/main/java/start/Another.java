@@ -102,11 +102,10 @@ public class Another extends Application {
                     (ov, old_val, new_val) -> {
                         if(old_val){
                             System.out.println("Delete");
-
-                            lineChart.getData().add(series(i.getCode(), dayFrom, dayTo));
+                            lineChart.getData().remove(i.getCode());
                         }else{
                             System.out.println(i.getCode());
-                            lineChart.getData().remove(i.getCode());
+                            lineChart.getData().add(series(i.getCode(), dayFrom, dayTo));
                         }
                     }
             );
