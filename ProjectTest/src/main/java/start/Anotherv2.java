@@ -5,6 +5,7 @@ import data.DataPlot;
 import data.DataTableCurrency;
 import javafx.application.Application;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -91,11 +92,24 @@ public class Anotherv2 extends Application {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
+
+                        if(item.isAfter(LocalDate.now())){
+                            setDisable(true);
+                            setStyle("-fx-background-color: #6a6a6a ;");
+                        }
                     }
                 };
             }
         };
         return dayCellFactory2;
+    }
+
+    public void uncheck(VBox vBox){
+        for(Node i:vBox.getChildren()){
+            if(i instanceof CheckBox){
+                ((CheckBox) i).setSelected(false);
+            }
+        }
     }
 
     // create data for chart
@@ -136,7 +150,7 @@ public class Anotherv2 extends Application {
         // FIRST SCENE
 
         AnchorPane mainPane1 = new AnchorPane();
-        
+
         SplitPane splitPane = new SplitPane();
         SplitPane leftControl  = new SplitPane();
         AnchorPane rightControl = new AnchorPane();
@@ -158,11 +172,18 @@ public class Anotherv2 extends Application {
             lineChart.getData().clear();
             Callback<DatePicker, DateCell> dayCellFactory2 = this.getDayCellFactory2();
             dateToPick.setDayCellFactory(dayCellFactory2);
+
+            // uncheck all
+            uncheck(downControl);
+
         });
         dateToPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayTo = newValue;
             System.out.println(dayTo);
             lineChart.getData().clear();
+
+            // uncheck all
+            uncheck(downControl);
         });
 
         // add DatePickers
