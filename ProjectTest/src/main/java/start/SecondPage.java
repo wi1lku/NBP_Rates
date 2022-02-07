@@ -3,6 +3,7 @@ package start;
 import data.DataGetter;
 import data.DataTableCurrency;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -10,9 +11,25 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 public class SecondPage extends Application {
+
+    private LocalDate dayNow = LocalDate.now();
+    private DataTableCurrency[] testTable =
+            DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
+
+    public void changeDate(){
+        if(dayNow.getDayOfWeek() == DayOfWeek.SATURDAY){
+            dayNow = dayNow.minusDays(1);
+            System.out.println(dayNow);
+        }else if(dayNow.getDayOfWeek() == DayOfWeek.SUNDAY){
+            dayNow = dayNow.minusDays(2);
+        }
+        testTable = DataGetter.getTableCurrencyData(dayNow);
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -23,20 +40,19 @@ public class SecondPage extends Application {
 
         GridPane table = new GridPane();
 
-        // Add labels
-        table.add(new Label("Name:"), 0, 0);
-        table.add(new Label("Code:"), 1, 0);
-        table.add(new Label("Sell:"), 2, 0);
-        table.add(new Label("Buy:"), 3, 0);
-
         // Prepare data
-        int year = LocalDate.now().getYear();
-        int month = LocalDate.now().getMonthValue();
-        int day = LocalDate.now().getDayOfMonth();
-        DataTableCurrency[] testTable = DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
+        changeDate();
+
+        // Add labels
+
+        table.add(new Label("Date:" + dayNow), 0, 0);
+        table.add(new Label("Name:"), 0, 1);
+        table.add(new Label("Code:"), 1, 1);
+        table.add(new Label("Sell:"), 2, 1);
+        table.add(new Label("Buy:"), 3, 1);
 
         // Create table
-        int j = 1;
+        int j = 2;
         for(DataTableCurrency i:testTable){
             TextField name = new TextField(i.getName());
             TextField code = new TextField(i.getCode());
@@ -55,6 +71,8 @@ public class SecondPage extends Application {
 
 
         mainPane.getChildren().add(table);
+
+
         Scene scene = new Scene(mainPane);
 
         stage.setScene(scene);

@@ -14,6 +14,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -24,23 +25,46 @@ import java.util.TreeMap;
 
 public class Anotherv2 extends Application {
 
-    DataTableCurrency[] testTable = DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
-    LocalDate dayFrom = LocalDate.now();
-    LocalDate dayTo = LocalDate.now();
-    CategoryAxis xAxis = new CategoryAxis();
-    NumberAxis yAxis = new NumberAxis();
-    LineChart<String, Number> lineChart = new LineChart<String, Number>(xAxis,yAxis);
-    TreeMap<String, XYChart.Series<String, Number>> seriesTreeMap = new TreeMap<String, XYChart.Series<String, Number>>();
-
-    // popraw legende
-    // czemu xaxis nie dziala dla jednego wykresu
-    // sprawdź buy sell
-
+    private LocalDate dayNow = LocalDate.now();
+    private DataTableCurrency[] testTable =
+            DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
+    private LocalDate dayFrom = LocalDate.now();
+    private LocalDate dayTo = LocalDate.now();
+    private final CategoryAxis xAxis = new CategoryAxis();
+    private final NumberAxis yAxis = new NumberAxis();
+    private final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+    private final TreeMap<String, XYChart.Series<String, Number>> seriesTreeMap = new TreeMap<>();
+    private final CheckBox checkBoxG = new CheckBox();
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    @Override
+    public void start(Stage stage) throws Exception {
+
+        TabPane tabPane = new TabPane();
+
+        Tab tab1 = new Tab("Chart");
+        Tab tab2 = new Tab("Cantor");
+
+
+        tab1.setContent(page1());
+        tab2.setContent(page2());
+
+        tabPane.getTabs().add(tab1);
+        tabPane.getTabs().add(tab2);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        Scene scene = new Scene(tabPane);
+
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.setTitle("NBP Rates");
+        stage.show();
+    }
+
+    // default DatePicker
     private Callback<DatePicker, DateCell> getDayCellFactory() {
 
         final Callback<DatePicker, DateCell> dayCellFactory = new Callback<DatePicker, DateCell>() {
@@ -70,6 +94,7 @@ public class Anotherv2 extends Application {
         return dayCellFactory;
     }
 
+    // DatePicker dayToPick
     private Callback<DatePicker, DateCell> getDayCellFactory2() {
 
         final Callback<DatePicker, DateCell> dayCellFactory2 = new Callback<DatePicker, DateCell>() {
@@ -104,6 +129,20 @@ public class Anotherv2 extends Application {
         return dayCellFactory2;
     }
 
+    // set dayNow to be compliant with data and
+    // change dataTableCurrency
+    public void changeDate(){
+        if(dayNow.getDayOfWeek() == DayOfWeek.SATURDAY){
+            dayNow = dayNow.minusDays(1);
+            System.out.println(dayNow);
+        }else if(dayNow.getDayOfWeek() == DayOfWeek.SUNDAY){
+            dayNow = dayNow.minusDays(2);
+        }
+        testTable = DataGetter.getTableCurrencyData(dayNow);
+    }
+
+
+    // uncheck all checkboxes in a vbox
     public void uncheck(VBox vBox){
         for(Node i:vBox.getChildren()){
             if(i instanceof CheckBox){
@@ -112,21 +151,20 @@ public class Anotherv2 extends Application {
         }
     }
 
-    // create data for chart
+    // create currency data for chart
     public XYChart.Series<String, Number> series(String code, LocalDate dayFrom, LocalDate dayTo){
 
-        //TreeMap<String, XYChart.Series<Number, Number>> data = new TreeMap<String, XYChart.Series<Number, Number>>();
         DataPlot currency = DataGetter.getPlotCurrencyData(code, dayFrom, dayTo);
         XYChart.Series series1 = new XYChart.Series();
+
         for(int j = 0; j < currency.getDates().toArray().length; j++){
             series1.getData().add(new XYChart.Data(currency.getDates().get(j).toString(), currency.getValues().get(j)));
         }
 
-        //data.put(code, series1);
-        //return data;
         return series1;
     }
 
+    // create gold data for chart
     public XYChart.Series<String, Number> goldSeries(LocalDate dayFrom, LocalDate dayTo){
         DataPlot currency = DataGetter.getPlotGoldData(dayFrom, dayTo);
         XYChart.Series series1 = new XYChart.Series();
@@ -136,20 +174,9 @@ public class Anotherv2 extends Application {
         return series1;
     }
 
-
-    @Override
-    public void start(Stage stage) throws Exception {
-
-        TabPane tabPane = new TabPane();
-
-        Tab tab1 = new Tab("Chart");
-        Tab tab2 = new Tab("Cantor");
-
-
-
-        // FIRST SCENE
-
-        AnchorPane mainPane1 = new AnchorPane();
+    // First page
+    public Pane page1(){
+        AnchorPane mainPane = new AnchorPane();
 
         SplitPane splitPane = new SplitPane();
         SplitPane leftControl  = new SplitPane();
@@ -158,23 +185,31 @@ public class Anotherv2 extends Application {
         VBox upControl = new VBox();
         VBox downControl = new VBox();
 
-        // DatePickers controls
+        changeDate();
+
+        // DatePickers
         Label dateFrom = new Label("Date from:");
         Label dateTo = new Label("Date to:");
         DatePicker dateFromPick = new DatePicker();
         DatePicker dateToPick = new DatePicker();
+        // Set look
         Callback<DatePicker, DateCell> dayCellFactory = this.getDayCellFactory();
         dateFromPick.setDayCellFactory(dayCellFactory);
         dateToPick.setDayCellFactory(dayCellFactory);
+        // Add listeners
         dateFromPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayFrom = newValue;
             System.out.println(dayFrom);
             lineChart.getData().clear();
+
+            // update dateToPick DatePicker look
             Callback<DatePicker, DateCell> dayCellFactory2 = this.getDayCellFactory2();
             dateToPick.setDayCellFactory(dayCellFactory2);
 
             // uncheck all
             uncheck(downControl);
+            // select gold
+            checkBoxG.setSelected(true);
 
         });
         dateToPick.valueProperty().addListener((ov, oldValue, newValue) -> {
@@ -184,9 +219,11 @@ public class Anotherv2 extends Application {
 
             // uncheck all
             uncheck(downControl);
+            // select gold
+            checkBoxG.setSelected(true);
         });
 
-        // add DatePickers
+        // Add DatePickers to pane
         upControl.getChildren().add(dateFrom);
         upControl.getChildren().add(dateFromPick);
         upControl.getChildren().add(dateTo);
@@ -194,7 +231,7 @@ public class Anotherv2 extends Application {
 
 
 
-        // Add checkboxes and listeners
+        // Add currency checkboxes and listeners
         for(DataTableCurrency i:testTable){
             CheckBox checkBox = new CheckBox();
             checkBox.setText(i.getCode());
@@ -206,16 +243,17 @@ public class Anotherv2 extends Application {
                         }else{
                             System.out.println(i.getCode());
                             seriesTreeMap.put(i.getCode(), series(i.getCode(), dayFrom, dayTo));
+                            seriesTreeMap.get(i.getCode()).setName(i.getCode());
                             lineChart.getData().add(seriesTreeMap.get(i.getCode()));
+
                         }
                     }
             );
             downControl.getChildren().add(checkBox);
         }
-
-        CheckBox checkBox = new CheckBox();
-        checkBox.setText("Gold");
-        checkBox.selectedProperty().addListener(
+        // Add gold checkbox and listener
+        checkBoxG.setText("Gold");
+        checkBoxG.selectedProperty().addListener(
                 (ov, old_val, new_val) -> {
                     if(old_val){
                         System.out.println("Delete");
@@ -223,15 +261,16 @@ public class Anotherv2 extends Application {
                     }else{
                         System.out.println("Gold");
                         seriesTreeMap.put("Gold", goldSeries(dayFrom, dayTo));
+                        seriesTreeMap.get("Gold").setName("Gold");
                         lineChart.getData().add(seriesTreeMap.get("Gold"));
                     }
                 }
         );
-        downControl.getChildren().add(checkBox);
+        downControl.getChildren().add(checkBoxG);
+        checkBoxG.setSelected(true);
 
 
-        // Chart
-
+        // Set up chart
         xAxis.setLabel("Date");
         yAxis.setLabel("Value");
         lineChart.setCreateSymbols(false);
@@ -241,30 +280,29 @@ public class Anotherv2 extends Application {
         leftControl.getItems().addAll(upControl, downControl);
         splitPane.getItems().addAll(leftControl, rightControl);
 
-        mainPane1.getChildren().add(splitPane);
+        mainPane.getChildren().add(splitPane);
 
+        return mainPane;
+    }
 
-
-        // SCENE 2
-
-        AnchorPane mainPane2 = new AnchorPane();
+    // Second page
+    public Pane page2(){
+        AnchorPane mainPane = new AnchorPane();
 
         GridPane table = new GridPane();
 
-        // Add labels
-        table.add(new Label("Name:"), 0, 0);
-        table.add(new Label("Code:"), 1, 0);
-        table.add(new Label("Sell:"), 2, 0);
-        table.add(new Label("Buy:"), 3, 0);
-
         // Prepare data
-        int year = LocalDate.now().getYear();
-        int month = LocalDate.now().getMonthValue();
-        int day = LocalDate.now().getDayOfMonth();
-        DataTableCurrency[] testTable = DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
+        changeDate();
+
+        // Add labels
+        table.add(new Label("Date:" + dayNow), 0, 0);
+        table.add(new Label("Name:"), 0, 1);
+        table.add(new Label("Code:"), 1, 1);
+        table.add(new Label("Sell:"), 2, 1);
+        table.add(new Label("Buy:"), 3, 1);
 
         // Create table
-        int j = 1;
+        int j = 2;
         for(DataTableCurrency i:testTable){
             TextField name = new TextField(i.getName());
             TextField code = new TextField(i.getCode());
@@ -282,18 +320,10 @@ public class Anotherv2 extends Application {
         }
 
 
-        mainPane2.getChildren().add(table);
+        mainPane.getChildren().add(table);
 
-        tab1.setContent(mainPane1);
-        tab2.setContent(mainPane2);
-        tabPane.getTabs().add(tab1);
-        tabPane.getTabs().add(tab2);
-        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
-        Scene scene = new Scene(tabPane);
-
-        stage.setScene(scene);
-        stage.setTitle("NBP Rates");
-        stage.show();
+        return mainPane;
     }
+
+
 }
