@@ -28,7 +28,7 @@ public class Anotherv2 extends Application {
     private LocalDate dayNow = LocalDate.now();
     private DataTableCurrency[] testTable =
             DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
-    private LocalDate dayFrom = LocalDate.now();
+    private LocalDate dayFrom = LocalDate.of(2022, 01, 03);
     private LocalDate dayTo = LocalDate.now();
     private final CategoryAxis xAxis = new CategoryAxis();
     private final NumberAxis yAxis = new NumberAxis();
@@ -291,11 +291,41 @@ public class Anotherv2 extends Application {
 
         GridPane table = new GridPane();
 
+        TextField dateText = new TextField("Date: " + dayNow);
+        dateText.setEditable(false);
+
         // Prepare data
         changeDate();
 
-        // Add labels
-        table.add(new Label("Date:" + dayNow), 0, 0);
+        // Prepare DatePicker
+        DatePicker datePicker = new DatePicker();
+        Callback<DatePicker, DateCell> dayCellFactory = this.getDayCellFactory();
+        datePicker.setDayCellFactory(dayCellFactory);
+        datePicker.valueProperty().addListener((ov, oldValue, newValue) -> {
+            LocalDate day = newValue;
+            DataTableCurrency[] newTable = DataGetter.getTableCurrencyData(day);
+            int j = 3;
+            for(DataTableCurrency i:newTable){
+                TextField name = new TextField(i.getName());
+                TextField code = new TextField(i.getCode());
+                TextField bid = new TextField(Float.toString(i.getBid()));
+                TextField ask = new TextField(Float.toString(i.getAsk()));
+                name.setEditable(false);
+                code.setEditable(false);
+                bid.setEditable(false);
+                ask.setEditable(false);
+                table.add(name, 0, j);
+                table.add(code, 1, j);
+                table.add(bid, 2, j);
+                table.add(ask, 3, j);
+                j += 1;
+            }
+            dateText.setText("Date: " + day);
+        });
+
+        // Add labels and DatePicker
+        table.add(dateText, 0, 0);
+        table.add(datePicker, 2, 0);
         table.add(new Label("Name:"), 0, 1);
         table.add(new Label("Code:"), 1, 1);
         table.add(new Label("Sell:"), 2, 1);
