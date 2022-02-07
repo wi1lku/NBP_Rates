@@ -304,7 +304,7 @@ public class Anotherv2 extends Application {
         datePicker.valueProperty().addListener((ov, oldValue, newValue) -> {
             LocalDate day = newValue;
             DataTableCurrency[] newTable = DataGetter.getTableCurrencyData(day);
-            int j = 3;
+            int j = 2;
             for(DataTableCurrency i:newTable){
                 TextField name = new TextField(i.getName());
                 TextField code = new TextField(i.getCode());
