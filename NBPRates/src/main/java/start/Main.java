@@ -26,7 +26,7 @@ import java.util.TreeMap;
 public class Main extends Application {
 
     private LocalDate dayNow = LocalDate.now().minusDays(1);
-    private DataTableCurrency[] testTable =
+    private DataTableCurrency[] currencyTable =
             DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
     private LocalDate dayFrom = LocalDate.of(2022, 1, 3);
     private LocalDate dayTo = LocalDate.now().minusDays(1);
@@ -150,7 +150,7 @@ public class Main extends Application {
         }else if(dayNow.getDayOfWeek() == DayOfWeek.SUNDAY){
             dayNow = dayNow.minusDays(2);
         }
-        testTable = DataGetter.getTableCurrencyData(dayNow);
+        currencyTable = DataGetter.getTableCurrencyData(dayNow);
     }
 
 
@@ -242,7 +242,7 @@ public class Main extends Application {
 
 
         // Add currency checkboxes and listeners
-        for(DataTableCurrency i:testTable){
+        for(DataTableCurrency i: currencyTable){
             CheckBox checkBox = new CheckBox();
             checkBox.setText(i.getCode());
             checkBox.selectedProperty().addListener(
@@ -338,7 +338,7 @@ public class Main extends Application {
 
         // Create table
         int j = 2;
-        for(DataTableCurrency i:testTable){
+        for(DataTableCurrency i: currencyTable){
             TextField name = new TextField(i.getName());
             TextField code = new TextField(i.getCode());
             TextField bid = new TextField(Float.toString(i.getBid()));
