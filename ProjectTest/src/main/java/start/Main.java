@@ -41,7 +41,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
 
         TabPane tabPane = new TabPane();
 
@@ -67,7 +67,7 @@ public class Main extends Application {
     // default DatePicker
     private Callback<DatePicker, DateCell> getDayCellFactory() {
 
-        final Callback<DatePicker, DateCell> dayCellFactory = new Callback<DatePicker, DateCell>() {
+        return new Callback<>() {
 
             @Override
             public DateCell call(final DatePicker datePicker) {
@@ -84,13 +84,13 @@ public class Main extends Application {
                         }
 
                         // disable dates after today
-                        if(item.isAfter(LocalDate.now())){
+                        if (item.isAfter(LocalDate.now())) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
                         // disable dates before 02-01-2002
-                        if(item.isBefore(LocalDate.of(2002,1,2))){
+                        if (item.isBefore(LocalDate.of(2002, 1, 2))) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
@@ -98,13 +98,12 @@ public class Main extends Application {
                 };
             }
         };
-        return dayCellFactory;
     }
 
     // DatePicker dayToPick
     private Callback<DatePicker, DateCell> getDayCellFactory2() {
 
-        final Callback<DatePicker, DateCell> dayCellFactory2 = new Callback<DatePicker, DateCell>() {
+        return new Callback<>() {
 
             @Override
             public DateCell call(final DatePicker datePicker) {
@@ -121,19 +120,19 @@ public class Main extends Application {
                         }
 
                         // disable dates before one chosen before
-                        if(item.isBefore(dayFrom)){
+                        if (item.isBefore(dayFrom)) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
                         // disable dates after today
-                        if(item.isAfter(LocalDate.now())){
+                        if (item.isAfter(LocalDate.now())) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
                         // disable dates before 02-01-2002
-                        if(item.isBefore(LocalDate.of(2002,1,2))){
+                        if (item.isBefore(LocalDate.of(2002, 1, 2))) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
@@ -141,7 +140,6 @@ public class Main extends Application {
                 };
             }
         };
-        return dayCellFactory2;
     }
 
     // set dayNow to be compliant with data and
@@ -310,8 +308,7 @@ public class Main extends Application {
         Callback<DatePicker, DateCell> dayCellFactory = this.getDayCellFactory();
         datePicker.setDayCellFactory(dayCellFactory);
         datePicker.valueProperty().addListener((ov, oldValue, newValue) -> {
-            LocalDate day = newValue;
-            DataTableCurrency[] newTable = DataGetter.getTableCurrencyData(day);
+            DataTableCurrency[] newTable = DataGetter.getTableCurrencyData(newValue);
             int j = 2;
             for(DataTableCurrency i:newTable){
                 TextField name = new TextField(i.getName());
@@ -328,7 +325,7 @@ public class Main extends Application {
                 table.add(ask, 3, j);
                 j += 1;
             }
-            dateText.setText("Date: " + day);
+            dateText.setText("Date: " + newValue);
         });
 
         // Add labels and DatePicker
