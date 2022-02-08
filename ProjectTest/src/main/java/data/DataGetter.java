@@ -1,9 +1,5 @@
 package data;
 
-import data.DataCalculator;
-import data.DataPlot;
-import data.DataTableCurrency;
-import data.DataTableGold;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -15,19 +11,31 @@ import java.time.LocalDate;
 
 public class DataGetter {
 
-    // TABLE
+    // Cantor Table
     // Table data getter
     public static DataTableCurrency[] getTableCurrencyData(LocalDate date){
 
-        DataTableCurrency[] dataTableArray;
+        DataTableCurrency[] dataTableArray = new DataTableCurrency[0];
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/tables/c/" +
-                date.toString() + "/?format=json")).build();
-        dataTableArray = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(DataGetter::parseToTableCurrency)
-                .join();
+        try{
+
+            // Creating HttpClient
+            HttpClient client = HttpClient.newHttpClient();
+            // Establishing connection, creating request
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/tables/c/" +
+                    date.toString() + "/?format=json")).build();
+            // Getting parsed data
+            dataTableArray = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)
+                    .thenApply(DataGetter::parseToTableCurrency)
+                    .join();
+
+        } catch (Exception e){
+
+            // Case there is no data
+            System.out.println("No data. Choose another date.");
+
+        }
 
         return dataTableArray;
     }
@@ -35,72 +43,78 @@ public class DataGetter {
     // Table data parser
     public static DataTableCurrency[] parseToTableCurrency(String responseBody){
 
+        // Get through json structure
         JSONArray jsonBody = new JSONArray(responseBody);
         JSONObject json0 = jsonBody.getJSONObject(0);
         JSONArray rates =  json0.getJSONArray("rates");
 
         DataTableCurrency[] dataTableArray = new DataTableCurrency[rates.length()];
 
+        // Get currency data from json and assign values
         for (int i = 0; i < rates.length(); ++i){
             JSONObject currency = rates.getJSONObject(i);
             dataTableArray[i] = new DataTableCurrency(currency.getString("currency"), currency.getString("code"),
                     currency.getFloat("bid"), currency.getFloat("ask"));
         }
+
         return dataTableArray;
     }
 
-    // Table gold getter and parser
-    public static DataTableGold getTableGoldData(LocalDate date){
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/cenyzlota/" +
-                date.toString() + "/?format=json")).build();
-        String responseBodyGold = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .join();
+    // Chart
+    // Chart currency getter
+    public static DataChart getChartCurrencyData(String code, LocalDate startDate, LocalDate endDate){
 
-        JSONArray jsonBodyGold = new JSONArray(responseBodyGold);
-        JSONObject jsonObjectGold = jsonBodyGold.getJSONObject(0);
-        return new DataTableGold(date, jsonObjectGold.getFloat("cena"));
+        DataChart dataCurrency = new DataChart();
 
-    }
+        try {
 
-    // PLOT
-    // Plot currency getter
-    public static DataPlot getPlotCurrencyData(String code, LocalDate startDate, LocalDate endDate){
+            // Case period exceeds 92 days
+            while (startDate.plusDays(92).isBefore(endDate)) {
+                // Creating HttpClient
+                HttpClient client = HttpClient.newHttpClient();
+                // Establishing connection, creating request
+                HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/rates/a/" + code +
+                        "/" + startDate + "/" + startDate.plusDays(91) + "/?format=json")).build();
+                // Getting parsed data
+                dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenApply(HttpResponse::body)
+                        .thenApply(DataGetter::parseToChartCurrency)
+                        .join());
+                startDate = startDate.plusDays(92);
+            }
 
-        DataPlot dataCurrency = new DataPlot();
-
-        while(startDate.plusDays(92).isBefore(endDate)){
+            // Creating HttpClient
             HttpClient client = HttpClient.newHttpClient();
+            // Establishing connection, creating request
             HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/rates/a/" + code +
-                    "/" + startDate + "/" + startDate.plusDays(91) + "/?format=json")).build();
+                    "/" + startDate + "/" + endDate + "/?format=json")).build();
+            // Getting parsed data
             dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
-                    .thenApply(DataGetter::parseToPlotCurrency)
+                    .thenApply(DataGetter::parseToChartCurrency)
                     .join());
-            startDate = startDate.plusDays(92);
-        }
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/rates/a/" + code +
-                "/" + startDate + "/" + endDate + "/?format=json")).build();
-        dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(DataGetter::parseToPlotCurrency)
-                .join());
+        } catch (Exception e){
+
+            // Case there is no data
+            System.out.println("No data. Choose another date.");
+
+        }
 
         return dataCurrency;
     }
 
-    // Plot currency parser
-    public static DataPlot parseToPlotCurrency(String responseBody){
+    // Chart currency parser
+    public static DataChart parseToChartCurrency(String responseBody){
 
+        // Get through json structure
         JSONObject json0 =  new JSONObject(responseBody);
         JSONArray rates =  json0.getJSONArray("rates");
 
-        DataPlot dataCurrency = new DataPlot();
+        DataChart dataCurrency = new DataChart();
 
+        // Get currency data from json and assign values
         for (int i = 0; i < rates.length(); ++i){
             JSONObject currency = rates.getJSONObject(i);
             dataCurrency.appendToDates(LocalDate.parse(currency.getString("effectiveDate")));
@@ -109,93 +123,60 @@ public class DataGetter {
         return dataCurrency;
     }
 
-    // Plot gold getter
-    public static DataPlot getPlotGoldData(LocalDate startDate, LocalDate endDate){
+    // Chart gold getter
+    public static DataChart getChartGoldData(LocalDate startDate, LocalDate endDate){
 
-        DataPlot dataCurrency = new DataPlot();
+        DataChart dataCurrency = new DataChart();
 
-        while(startDate.plusDays(92).isBefore(endDate)){
+        try {
+
+            while (startDate.plusDays(92).isBefore(endDate)) {
+                // Creating HttpClient
+                HttpClient client = HttpClient.newHttpClient();
+                // Establishing connection, creating request
+                HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/cenyzlota/"
+                        + startDate + "/" + startDate.plusDays(91) + "/?format=json")).build();
+                // Getting parsed data
+                dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenApply(HttpResponse::body)
+                        .thenApply(DataGetter::parseToChartGold)
+                        .join());
+                startDate = startDate.plusDays(92);
+            }
+
+            // Creating HttpClient
             HttpClient client = HttpClient.newHttpClient();
+            // Establishing connection, creating request
             HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/cenyzlota/"
-                    + startDate + "/" + startDate.plusDays(91) + "/?format=json")).build();
+                    + startDate + "/" + endDate + "/?format=json")).build();
+            // Getting parsed data
             dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
-                    .thenApply(DataGetter::parseToPlotGold)
+                    .thenApply(DataGetter::parseToChartGold)
                     .join());
-            startDate = startDate.plusDays(92);
-        }
+        } catch (Exception e){
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/cenyzlota/"
-                + startDate + "/" + endDate + "/?format=json")).build();
-        dataCurrency.addList(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(DataGetter::parseToPlotGold)
-                .join());
+            // Case there is no data
+            System.out.println("No data. Choose another date.");
+
+        }
 
         return dataCurrency;
     }
 
-    // Plot gold parser
-    public static DataPlot parseToPlotGold(String responseBody){
+    // Chart gold parser
+    public static DataChart parseToChartGold(String responseBody){
 
         JSONArray json0 =  new JSONArray(responseBody);
+        DataChart dataGold = new DataChart();
 
-        DataPlot dataGold = new DataPlot();
-
+        // Get gold data from json and assign values
         for (int i = 0; i < json0.length(); ++i){
             JSONObject gold = json0.getJSONObject(i);
             dataGold.appendToDates(LocalDate.parse(gold.getString("data")));
             dataGold.appendToValues(gold.getFloat("cena"));
         }
         return dataGold;
-    }
-
-
-    // CALCULATOR
-    // Calculator data getter
-    public static DataCalculator getCalculatorData(String codeSell, String codeBuy, LocalDate date){
-
-        DataCalculator dataCalculatorCurrencies = new DataCalculator();
-        dataCalculatorCurrencies.setDate(date);
-        dataCalculatorCurrencies.setCodeSell(codeSell);
-        dataCalculatorCurrencies.setCodeBuy(codeBuy);
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/rates/c/" +
-                codeSell + "/" + date.toString() + "/?format=json")).build();
-        dataCalculatorCurrencies.addSell(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(DataGetter::parseToCalculatorCurrency)
-                .join());
-
-        client = HttpClient.newHttpClient();
-        request = HttpRequest.newBuilder(URI.create("http://api.nbp.pl/api/exchangerates/rates/c/" +
-                codeBuy + "/" + date.toString() + "/?format=json")).build();
-        dataCalculatorCurrencies.addBuy(client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(DataGetter::parseToCalculatorCurrency)
-                .join());
-
-        return dataCalculatorCurrencies;
-    }
-
-    // Calculator data parser
-    public static DataCalculator parseToCalculatorCurrency(String responseBody){
-
-        JSONObject json0 =  new JSONObject(responseBody);
-        JSONArray rates =  json0.getJSONArray("rates");
-
-        DataCalculator dataCalculatorCurrencies = new DataCalculator();
-
-        JSONObject currency = rates.getJSONObject(0);
-
-        dataCalculatorCurrencies.setNameSell(json0.getString("currency"));
-        dataCalculatorCurrencies.setValSell(currency.getFloat("bid"));
-        dataCalculatorCurrencies.setNameBuy(json0.getString("currency"));
-        dataCalculatorCurrencies.setValBuy(currency.getFloat("ask"));
-
-        return dataCalculatorCurrencies;
     }
 
 }

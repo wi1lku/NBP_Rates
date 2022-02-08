@@ -2,10 +2,10 @@ package data;
 
 public class DataTableCurrency {
 
-    private String name;
-    private String code;
-    private float bid;
-    private float ask;
+    private final String name; // full name of currency
+    private final String code; // code of currency
+    private final float bid; // sell value of currency
+    private final float ask; // buy value of currency
 
     public DataTableCurrency(String name, String code, float bid, float ask) {
         this.name = name;

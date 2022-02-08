@@ -1,7 +1,7 @@
 package start;
 
 import data.DataGetter;
-import data.DataPlot;
+import data.DataChart;
 import data.DataTableCurrency;
 import javafx.application.Application;
 import javafx.geometry.Orientation;
@@ -23,12 +23,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.TreeMap;
 
-public class Anotherv2 extends Application {
+public class Main extends Application {
 
     private LocalDate dayNow = LocalDate.now().minusDays(1);
     private DataTableCurrency[] testTable =
             DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
-    private LocalDate dayFrom = LocalDate.of(2022, 01, 03);
+    private LocalDate dayFrom = LocalDate.of(2022, 1, 3);
     private LocalDate dayTo = LocalDate.now().minusDays(1);
     private final CategoryAxis xAxis = new CategoryAxis();
     private final NumberAxis yAxis = new NumberAxis();
@@ -76,14 +76,21 @@ public class Anotherv2 extends Application {
                     public void updateItem(LocalDate item, boolean empty) {
                         super.updateItem(item, empty);
 
-                        // Disable Saturday and Sunday.
+                        // disable Saturdays and Sundays
                         if (item.getDayOfWeek() == DayOfWeek.SATURDAY //
                                 || item.getDayOfWeek() == DayOfWeek.SUNDAY) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
+                        // disable dates after today
                         if(item.isAfter(LocalDate.now())){
+                            setDisable(true);
+                            setStyle("-fx-background-color: #6a6a6a ;");
+                        }
+
+                        // disable dates before 02-01-2002
+                        if(item.isBefore(LocalDate.of(2002,1,2))){
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
@@ -106,19 +113,27 @@ public class Anotherv2 extends Application {
                     public void updateItem(LocalDate item, boolean empty) {
                         super.updateItem(item, empty);
 
-                        // Disable Saturday and Sunday.
+                        // disable Saturdays and Sundays
                         if (item.getDayOfWeek() == DayOfWeek.SATURDAY //
                                 || item.getDayOfWeek() == DayOfWeek.SUNDAY) {
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
+                        // disable dates before one chosen before
                         if(item.isBefore(dayFrom)){
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
 
+                        // disable dates after today
                         if(item.isAfter(LocalDate.now())){
+                            setDisable(true);
+                            setStyle("-fx-background-color: #6a6a6a ;");
+                        }
+
+                        // disable dates before 02-01-2002
+                        if(item.isBefore(LocalDate.of(2002,1,2))){
                             setDisable(true);
                             setStyle("-fx-background-color: #6a6a6a ;");
                         }
@@ -153,7 +168,7 @@ public class Anotherv2 extends Application {
     // create currency data for chart
     public XYChart.Series<String, Number> series(String code, LocalDate dayFrom, LocalDate dayTo){
 
-        DataPlot currency = DataGetter.getPlotCurrencyData(code, dayFrom, dayTo);
+        DataChart currency = DataGetter.getChartCurrencyData(code, dayFrom, dayTo);
         XYChart.Series series1 = new XYChart.Series();
 
         for(int j = 0; j < currency.getDates().toArray().length; j++){
@@ -165,7 +180,7 @@ public class Anotherv2 extends Application {
 
     // create gold data for chart
     public XYChart.Series<String, Number> goldSeries(LocalDate dayFrom, LocalDate dayTo){
-        DataPlot currency = DataGetter.getPlotGoldData(dayFrom, dayTo);
+        DataChart currency = DataGetter.getChartGoldData(dayFrom, dayTo);
         XYChart.Series series1 = new XYChart.Series();
         for(int j = 0; j < currency.getDates().toArray().length; j++){
             series1.getData().add(new XYChart.Data(currency.getDates().get(j).toString(), currency.getValues().get(j)));
