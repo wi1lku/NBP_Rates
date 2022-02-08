@@ -25,11 +25,11 @@ import java.util.TreeMap;
 
 public class Anotherv2 extends Application {
 
-    private LocalDate dayNow = LocalDate.now();
+    private LocalDate dayNow = LocalDate.now().minusDays(1);
     private DataTableCurrency[] testTable =
             DataGetter.getTableCurrencyData(LocalDate.of(2021, 10, 11));
     private LocalDate dayFrom = LocalDate.of(2022, 01, 03);
-    private LocalDate dayTo = LocalDate.now();
+    private LocalDate dayTo = LocalDate.now().minusDays(1);
     private final CategoryAxis xAxis = new CategoryAxis();
     private final NumberAxis yAxis = new NumberAxis();
     private final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
@@ -134,7 +134,6 @@ public class Anotherv2 extends Application {
     public void changeDate(){
         if(dayNow.getDayOfWeek() == DayOfWeek.SATURDAY){
             dayNow = dayNow.minusDays(1);
-            System.out.println(dayNow);
         }else if(dayNow.getDayOfWeek() == DayOfWeek.SUNDAY){
             dayNow = dayNow.minusDays(2);
         }
@@ -199,7 +198,6 @@ public class Anotherv2 extends Application {
         // Add listeners
         dateFromPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayFrom = newValue;
-            System.out.println(dayFrom);
             lineChart.getData().clear();
 
             // update dateToPick DatePicker look
@@ -214,7 +212,6 @@ public class Anotherv2 extends Application {
         });
         dateToPick.valueProperty().addListener((ov, oldValue, newValue) -> {
             dayTo = newValue;
-            System.out.println(dayTo);
             lineChart.getData().clear();
 
             // uncheck all
@@ -238,10 +235,8 @@ public class Anotherv2 extends Application {
             checkBox.selectedProperty().addListener(
                     (ov, old_val, new_val) -> {
                         if(old_val){
-                            System.out.println("Delete");
                             lineChart.getData().remove(seriesTreeMap.get(i.getCode()));
                         }else{
-                            System.out.println(i.getCode());
                             seriesTreeMap.put(i.getCode(), series(i.getCode(), dayFrom, dayTo));
                             seriesTreeMap.get(i.getCode()).setName(i.getCode());
                             lineChart.getData().add(seriesTreeMap.get(i.getCode()));
@@ -256,10 +251,8 @@ public class Anotherv2 extends Application {
         checkBoxG.selectedProperty().addListener(
                 (ov, old_val, new_val) -> {
                     if(old_val){
-                        System.out.println("Delete");
                         lineChart.getData().remove(seriesTreeMap.get("Gold"));
                     }else{
-                        System.out.println("Gold");
                         seriesTreeMap.put("Gold", goldSeries(dayFrom, dayTo));
                         seriesTreeMap.get("Gold").setName("Gold");
                         lineChart.getData().add(seriesTreeMap.get("Gold"));
