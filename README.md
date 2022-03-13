@@ -6,7 +6,7 @@ Tab 1 - Chart <br>
 This tab is plotting a chart for currency exchange rates and gold prices in the selected period. <br>
 Tab 2 - Cantor <br>
 This tab presents a table with the selling and buying prices of different currencies on the chosen day. <br>
-Screenshots: 
-![screen 1](scr1.png)
-![screen 2](scr2.png)
-![screen 3](scr3.png)
+Screenshots: <br>
+![](screenshots/scr1.png) <br>
+![](screenshots/scr2.png) <br>
+![](screenshots/scr3.png) <br>
