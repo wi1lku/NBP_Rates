@@ -13,3 +13,7 @@ Screenshots: <br>
 ![](screenshots/scr2.png) <!-- -->
 
 ![](screenshots/scr3.png) <!-- -->
+<hr>
+Authors: <br>
+Julia Kaznowska <br>
+Piotr Wiczyński
