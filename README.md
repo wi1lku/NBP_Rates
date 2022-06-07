@@ -16,4 +16,4 @@ Screenshots: <br>
 <hr>
 Authors: <br>
 Julia Kaznowska <br>
-Piotr Wiczyński
+Piotr Wilczyński
